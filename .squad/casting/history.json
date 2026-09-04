@@ -1,0 +1,19 @@
+{
+  "universe_usage_history": [
+    {
+      "universe": "descriptive",
+      "assignment_id": "initial-team-2026-09-04",
+      "used_at": "2026-09-04T17:20:50.534+08:00"
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "initial-team-2026-09-04": {
+      "universe": "descriptive",
+      "agents": {
+        "neo": "Neo",
+        "tank": "Tank"
+      },
+      "created_at": "2026-09-04T17:20:50.534+08:00"
+    }
+  }
+}

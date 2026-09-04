@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Source/NSubstitute.QuickMock.Vsix.Tests/NSubstitute.QuickMock.Vsix.Tests.csproj" />
+  <Project Path="Source/NSubstitute.QuickMock.Vsix/NSubstitute.QuickMock.Vsix.csproj" />
+  <Project Path="Source/NSubstitute.QuickMock/NSubstitute.QuickMock.csproj" />
+</Solution>
