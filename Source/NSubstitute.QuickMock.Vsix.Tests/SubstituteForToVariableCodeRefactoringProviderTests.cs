@@ -10,7 +10,7 @@ public class SubstituteForToVariableCodeRefactoringProviderTests
     [TestMethod]
     public async Task ConvertsSelectedSubstituteForToVariable()
     {
-        var source = @"
+        var source = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -28,9 +28,10 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([|Substitute|].For<ICurrentUser>());
         }
     }
-}";
+}
+""";
 
-        var fixedSource = @"
+        var fixedSource = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -49,7 +50,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly(userMock);
         }
     }
-}";
+}
+""";
 
         await VerifyCS.VerifyRefactoringAsync(
             source,
@@ -60,7 +62,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task UsesBaseMockNameWhenSameNameExistsInAnotherMethod()
     {
-        var source = @"
+        var source = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -84,9 +86,10 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([|Substitute|].For<ILogger<DemoClassOnly>>());
         }
     }
-}";
+}
+""";
 
-        var fixedSource = @"
+        var fixedSource = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -111,7 +114,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly(loggerMock);
         }
     }
-}";
+}
+""";
 
         await VerifyCS.VerifyRefactoringAsync(
             source,
@@ -122,7 +126,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task ReusesVariableNameWhenMatchingLocalIsOutsideCurrentMethodScope()
     {
-        var source = @"
+        var source = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -145,9 +149,10 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([|Substitute|].For<ILogger>());
         }
     }
-}";
+}
+""";
 
-        var fixedSource = @"
+        var fixedSource = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -171,7 +176,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly(loggerMock);
         }
     }
-}";
+}
+""";
 
         await VerifyCS.VerifyRefactoringAsync(
             source,
@@ -182,7 +188,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task AvoidsVariableNameUsedLaterInSameMethodScope()
     {
-        var source = @"
+        var source = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -201,9 +207,10 @@ namespace DemoProject.Tests
             var loggerMock = Substitute.For<ILogger>();
         }
     }
-}";
+}
+""";
 
-        var fixedSource = @"
+        var fixedSource = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -223,7 +230,8 @@ namespace DemoProject.Tests
             var loggerMock = Substitute.For<ILogger>();
         }
     }
-}";
+}
+""";
 
         await VerifyCS.VerifyRefactoringAsync(
             source,
@@ -234,7 +242,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task IsUnavailableWithoutNSubstitutePackageReference()
     {
-        var source = @"
+        var source = """
 namespace DemoProject.Tests
 {
     public interface ICurrentUser { }
@@ -251,7 +259,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([|Substitute.For<ICurrentUser>()|]);
         }
     }
-}";
+}
+""";
 
         await VerifyCS.VerifyRefactoringAsync(
             source,

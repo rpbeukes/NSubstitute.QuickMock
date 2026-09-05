@@ -11,7 +11,7 @@ namespace NSubstitute.QuickMock.Tests;
 [TestClass]
 public class NSubstituteQuickMockCodeRefactoringProviderTests
 {
-    private const string Template = @"
+    private const string Template = """
 using System;
 using NSubstitute;
 namespace DemoProject.Tests
@@ -34,7 +34,8 @@ namespace DemoProject.Tests
             var systemUnderTest = [|{0}|];
         }
     }
-}";
+}
+""";
 
     [TestMethod]
     public async Task QuickMockCtor_UsesSubstitutesAndArgAnyForMixedParameters()
@@ -76,7 +77,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task ConstructorRefactorings_AreUnavailableWhenConstructorAlreadyHasAnArgument()
     {
-        var source = @"
+        var source = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -93,7 +94,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([|loggerMock|]);
         }
     }
-}";
+}
+""";
 
         var fixedSource = source.Replace("[|", string.Empty).Replace("|]", string.Empty);
         await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
@@ -102,7 +104,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task ConstructorRefactorings_AreNotAvailableOnSubstituteForConstructorArgument()
     {
-        var source = @"
+        var source = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -118,7 +120,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([|Substitute|].For<ICurrentUser>());
         }
     }
-}";
+}
+""";
 
         var fixedSource = source.Replace("[|", string.Empty).Replace("|]", string.Empty);
         await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
@@ -127,7 +130,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task SubstituteForArgument_OffersOnlyVariableRefactoring()
     {
-        var argumentSource = @"
+        var argumentSource = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -143,9 +146,10 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([|Substitute.For<ICurrentUser>()|]);
         }
     }
-}";
+}
+""";
 
-        var argumentFixedSource = @"
+        var argumentFixedSource = """
 using NSubstitute;
 namespace DemoProject.Tests
 {
@@ -162,7 +166,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly(userMock);
         }
     }
-}";
+}
+""";
 
         await VerifySubstituteForToVariable.VerifyRefactoringAsync(
             argumentSource,
@@ -198,7 +203,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task ConstructorRefactorings_AreUnavailableWithoutNSubstitutePackageReference()
     {
-        var source = @"
+        var source = """
 namespace DemoProject.Tests
 {
     public interface ILogger { }
@@ -213,7 +218,8 @@ namespace DemoProject.Tests
             var systemUnderTest = new DemoClassOnly([||]);
         }
     }
-}";
+}
+""";
 
         await VerifyCS.VerifyRefactoringAsync(
             source,
