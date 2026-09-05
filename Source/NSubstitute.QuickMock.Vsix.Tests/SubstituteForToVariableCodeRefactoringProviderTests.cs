@@ -1,9 +1,6 @@
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute.QuickMock;
-using VerifyCS = NSubstitute.QuickMock.Test.CSharpCodeRefactoringVerifier<
-    NSubstitute.QuickMock.SubstituteForToVariableCodeRefactoringProvider>;
+using System.Threading.Tasks;
+using VerifyCS = NSubstitute.QuickMock.Test.CSharpCodeRefactoringVerifier<NSubstitute.QuickMock.SubstituteForToVariableCodeRefactoringProvider>;
 
 namespace NSubstitute.QuickMock.Tests;
 
