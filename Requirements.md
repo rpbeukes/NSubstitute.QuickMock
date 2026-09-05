@@ -53,7 +53,7 @@ Substitute.For<Func<IValidator<InvoiceDetailsInput>>>());
 ### Substitute.For&lt;T&gt; to variable
 Put the `cursor (caret)` on an argument where `Substitute.For<T>` is used.
 
-Find `Substitute.For<T> to to variable` Refactor Menu Options.
+Find `Substitute.For<T> to variable` Refactor Menu Options.
 
 Make sure you put the `cursor` on the word `Mock` or just in front of it.
 
