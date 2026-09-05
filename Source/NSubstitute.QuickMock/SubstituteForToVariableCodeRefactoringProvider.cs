@@ -81,7 +81,7 @@ namespace NSubstitute.QuickMock
                 return;
 
             context.RegisterRefactoring(CodeAction.Create(Title,
-                                                          cancellationToken => ApplyAsync(context.Document, invocation, argumentList, parameter, cancellationToken),
+                                                          cancellationToken => ApplyAsync(context.Document, invocation, argumentList, parameter, model, cancellationToken),
                                                           equivalenceKey: Title));
         }
 
