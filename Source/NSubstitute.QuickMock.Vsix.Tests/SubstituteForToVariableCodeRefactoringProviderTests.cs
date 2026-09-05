@@ -230,4 +230,32 @@ namespace DemoProject.Tests
             fixedSource,
             actionTitle: SubstituteForToVariableCodeRefactoringProvider.Title);
     }
+
+    [TestMethod]
+    public async Task IsUnavailableWithoutNSubstitutePackageReference()
+    {
+        var source = @"
+namespace DemoProject.Tests
+{
+    public interface ICurrentUser { }
+
+    public class DemoClassOnly
+    {
+        public DemoClassOnly(ICurrentUser user) { }
+    }
+
+    public class DemoClassOnlyTests
+    {
+        public void Test()
+        {
+            var systemUnderTest = new DemoClassOnly([|Substitute.For<ICurrentUser>()|]);
+        }
+    }
+}";
+
+        await VerifyCS.VerifyRefactoringAsync(
+            source,
+            source.Replace("[|", string.Empty).Replace("|]", string.Empty),
+            includeNSubstituteReference: false);
+    }
 }

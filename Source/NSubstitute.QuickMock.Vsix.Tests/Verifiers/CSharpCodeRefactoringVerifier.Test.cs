@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -10,16 +9,14 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
 {
     public class Test : CSharpCodeRefactoringTest<TCodeRefactoring, DefaultVerifier>
     {
-        public Test()
+        public Test(bool includeNSubstituteReference = true)
         {
             SolutionTransforms.Add((solution, projectId) =>
             {
                 var options = solution.GetProject(projectId).CompilationOptions;
                 solution = solution.WithProjectCompilationOptions(projectId,
-                    options.WithSpecificDiagnosticOptions(
-                        options.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings)));
-                return solution.AddMetadataReference(projectId,
-                    MetadataReference.CreateFromFile(typeof(global::NSubstitute.Substitute).Assembly.Location));
+                                                                  options.WithSpecificDiagnosticOptions(options.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings)));
+                return solution;
             });
         }
 

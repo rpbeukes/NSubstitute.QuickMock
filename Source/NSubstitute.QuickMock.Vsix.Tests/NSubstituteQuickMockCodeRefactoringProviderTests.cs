@@ -196,6 +196,32 @@ namespace DemoProject.Tests
     }
 
     [TestMethod]
+    public async Task ConstructorRefactorings_AreUnavailableWithoutNSubstitutePackageReference()
+    {
+        var source = @"
+namespace DemoProject.Tests
+{
+    public interface ILogger { }
+    public class DemoClassOnly
+    {
+        public DemoClassOnly(ILogger logger) { }
+    }
+    public class DemoClassOnlyTests
+    {
+        public void Test()
+        {
+            var systemUnderTest = new DemoClassOnly([||]);
+        }
+    }
+}";
+
+        await VerifyCS.VerifyRefactoringAsync(
+            source,
+            source.Replace("[|", string.Empty).Replace("|]", string.Empty),
+            includeNSubstituteReference: false);
+    }
+
+    [TestMethod]
     public async Task ActionsHaveExactTitles()
     {
         NSubstitute.QuickMock.Helpers.SourceFileHelpers.IsTestFile(@"C:\src\FeatureTests.cs").ShouldBeTrue();

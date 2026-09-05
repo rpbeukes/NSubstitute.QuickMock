@@ -49,6 +49,10 @@ namespace NSubstitute.QuickMock
                     {
                         var document = context.Document;
                         var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken);
+
+                        if (!SourceFileHelpers.HasNSubstituteReference(semanticModel.Compilation))
+                            return;
+
                         var objectCreationExpressionSyntax = argumentList.Parent as ObjectCreationExpressionSyntax;
 
                         if (objectCreationExpressionSyntax is null) return;
@@ -56,6 +60,7 @@ namespace NSubstitute.QuickMock
                         if (argumentList.Arguments.Count > 0) return;
 
                         var typeInfo = semanticModel.GetTypeInfo(objectCreationExpressionSyntax);
+
                         var classDefinition = typeInfo.ConvertedType as INamedTypeSymbol;
 
                         if (classDefinition is null) return;
@@ -76,8 +81,8 @@ namespace NSubstitute.QuickMock
                                                                             equivalenceKey: title);
 
                                 // Register these code actions.
-                                context.RegisterRefactoring(quickMockCtorAction);
                                 context.RegisterRefactoring(mockCtorAction);
+                                context.RegisterRefactoring(quickMockCtorAction);
                             }
                         }
                     }

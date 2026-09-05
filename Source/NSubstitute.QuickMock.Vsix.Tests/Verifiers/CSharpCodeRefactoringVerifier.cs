@@ -1,19 +1,38 @@
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
+using System.Threading.Tasks;
 
 namespace NSubstitute.QuickMock.Test;
 
 public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
     where TCodeRefactoring : CodeRefactoringProvider, new()
 {
-    public static Task VerifyRefactoringAsync(string source, string fixedSource, DiagnosticResult[] expected = null, string actionTitle = null, string fileName = null)
+    public static Task VerifyRefactoringAsync(string source,
+                                              string fixedSource,
+                                              DiagnosticResult[] expected = null,
+                                              string actionTitle = null,
+                                              string fileName = null,
+                                              bool includeNSubstituteReference = true)
     {
-        var test = new Test { TestCode = source, FixedCode = fixedSource, CompilerDiagnostics = CompilerDiagnostics.None };
+        var test = new Test(includeNSubstituteReference) { TestCode = source, FixedCode = fixedSource, CompilerDiagnostics = CompilerDiagnostics.None };
+        if (includeNSubstituteReference)
+        {
+            const string nSubstituteApi = @"
+namespace NSubstitute
+{
+    public static class Substitute
+    {
+        public static T For<T>() => default(T);
+    }
+
+    public static class Arg
+    {
+        public static T Any<T>() => default(T);
+    }
+}";
+            test.TestState.Sources.Add(("NSubstituteReference.cs", nSubstituteApi));
+            test.FixedState.Sources.Add(("NSubstituteReference.cs", nSubstituteApi));
+        }
         if (expected != null) test.ExpectedDiagnostics.AddRange(expected);
         if (actionTitle != null) test.CodeActionEquivalenceKey = actionTitle;
         if (fileName != null)

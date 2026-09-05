@@ -48,11 +48,15 @@ namespace NSubstitute.QuickMock
 
             var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
+            if (!SourceFileHelpers.HasNSubstituteReference(model.Compilation))
+                return;
+
             var method = model.GetSymbolInfo(invocation, context.CancellationToken).Symbol as IMethodSymbol;
 
-            if (method != null && (method.ContainingType?.Name != "Substitute"
-                || method.ContainingNamespace?.ToDisplayString() != "NSubstitute"
-                || !method.IsGenericMethod))
+            if (method == null ||
+                    method.ContainingType?.Name != "Substitute" ||
+                        method.ContainingNamespace?.ToDisplayString() != "NSubstitute" ||
+                            !method.IsGenericMethod)
                 return;
 
             var constructor = model.GetSymbolInfo(creation, context.CancellationToken).Symbol as IMethodSymbol;
