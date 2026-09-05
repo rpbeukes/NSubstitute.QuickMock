@@ -121,36 +121,47 @@ namespace NSubstitute.QuickMock
                 && receiver.Identifier.ValueText == "Substitute";
         }
 
-        private static async Task<Document> ApplyAsync(Document document, InvocationExpressionSyntax invocation,
-            ArgumentListSyntax argumentList, IParameterSymbol parameter, System.Threading.CancellationToken cancellationToken)
+        private static async Task<Document> ApplyAsync(Document document,
+                                                       InvocationExpressionSyntax invocation,
+                                                       ArgumentListSyntax argumentList,
+                                                       IParameterSymbol parameter,
+                                                       SemanticModel model,
+                                                       System.Threading.CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var statement = invocation.Ancestors().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
             if (statement == null)
                 return document;
 
             var baseName = parameter.Name + "Mock";
-            var used = new System.Collections.Generic.HashSet<string>(
-                root.DescendantTokens().Where(t => t.IsKind(SyntaxKind.IdentifierToken))
-                    .Select(t => t.ValueText), StringComparer.Ordinal);
             var name = baseName;
-            for (var i = 2; used.Contains(name); i++)
+
+            for (var i = 2; IsNameUsedInScope(model, statement, name); i++)
                 name = baseName + i;
 
             var typeSyntax = invocation.Expression is MemberAccessExpressionSyntax access && access.Name is GenericNameSyntax generic
-                ? generic.TypeArgumentList.ToString()
-                : null;
+                           ? generic.TypeArgumentList.ToString()
+                           : null;
+
             if (typeSyntax == null)
                 return document;
 
             var declaration = SyntaxFactory.ParseStatement($"var {name} = Substitute.For{typeSyntax}();")
-                .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
-                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
+                                           .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
+                                           .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
+
             var replacement = SyntaxFactory.IdentifierName(name).WithTriviaFrom(invocation);
+
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
             editor.InsertBefore(statement, declaration);
             editor.ReplaceNode(invocation, replacement);
+
             return editor.GetChangedDocument();
+        }
+
+        private static bool IsNameUsedInScope(SemanticModel model, LocalDeclarationStatementSyntax statement, string name)
+        {
+            return model.LookupSymbols(statement.SpanStart, name: name).Any();
         }
     }
 }
