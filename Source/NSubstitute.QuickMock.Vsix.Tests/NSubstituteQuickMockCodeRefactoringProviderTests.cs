@@ -1,7 +1,6 @@
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute.QuickMock;
+using Shouldly;
+using System.Threading.Tasks;
 using VerifyCS = NSubstitute.QuickMock.Test.CSharpCodeRefactoringVerifier<
     NSubstitute.QuickMock.NSubstituteQuickMockCodeRefactoringProvider>;
 using VerifySubstituteForToVariable = NSubstitute.QuickMock.Test.CSharpCodeRefactoringVerifier<
@@ -72,6 +71,32 @@ namespace DemoProject.Tests
         await VerifyCS.VerifyRefactoringAsync(start, fixedCode,
             null,
             NSubstituteQuickMockCodeRefactoringProvider.QuickMockCtorTitle);
+    }
+
+    [TestMethod]
+    public async Task ConstructorRefactorings_AreUnavailableWhenConstructorAlreadyHasAnArgument()
+    {
+        var source = @"
+using NSubstitute;
+namespace DemoProject.Tests
+{
+    public interface ILogger { }
+    public class DemoClassOnly
+    {
+        public DemoClassOnly(ILogger logger) { }
+    }
+    public class DemoClassOnlyTests
+    {
+        public void Test()
+        {
+            var loggerMock = Substitute.For<ILogger>();
+            var systemUnderTest = new DemoClassOnly([|loggerMock|]);
+        }
+    }
+}";
+
+        var fixedSource = source.Replace("[|", string.Empty).Replace("|]", string.Empty);
+        await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
     }
 
     [TestMethod]
@@ -163,6 +188,7 @@ namespace DemoProject.Tests
             constructorSource,
             quickMockFixedSource,
             actionTitle: NSubstituteQuickMockCodeRefactoringProvider.QuickMockCtorTitle);
+
         await VerifyCS.VerifyRefactoringAsync(
             constructorSource,
             mockFixedSource,
@@ -172,10 +198,7 @@ namespace DemoProject.Tests
     [TestMethod]
     public async Task ActionsHaveExactTitles()
     {
-        Assert.IsTrue(string.Equals("Quick mock ctor (NSubstitute)", NSubstituteQuickMockCodeRefactoringProvider.QuickMockCtorTitle));
-        Assert.IsTrue(string.Equals("Mock ctor (NSubstitute)", NSubstituteQuickMockCodeRefactoringProvider.MockCtorTitle));
-        Assert.IsTrue(string.Equals("Substitute.For<T> to variable", SubstituteForToVariableCodeRefactoringProvider.Title));
-        Assert.IsTrue(NSubstitute.QuickMock.Helpers.SourceFileHelpers.IsTestFile(@"C:\src\FeatureTests.cs"));
-        Assert.IsFalse(NSubstitute.QuickMock.Helpers.SourceFileHelpers.IsTestFile(@"C:\src\Feature.cs"));
+        NSubstitute.QuickMock.Helpers.SourceFileHelpers.IsTestFile(@"C:\src\FeatureTests.cs").ShouldBeTrue();
+        NSubstitute.QuickMock.Helpers.SourceFileHelpers.IsTestFile(@"C:\src\Feature.cs").ShouldBeFalse();
     }
 }

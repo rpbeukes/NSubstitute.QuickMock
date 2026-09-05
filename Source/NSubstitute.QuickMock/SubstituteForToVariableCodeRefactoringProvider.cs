@@ -17,36 +17,46 @@ namespace NSubstitute.QuickMock
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(SubstituteForToVariableCodeRefactoringProvider)), Shared]
     public sealed class SubstituteForToVariableCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public const string Title = "Substitute.For<T> to variable";
+        public const string Title = "Substitute.For<T> to variable (NSubstitute)";
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
             var invocation = FindSubstituteForInvocation(root, context.Span);
+
             if (invocation == null || !SourceFileHelpers.IsTestFile(root.SyntaxTree.FilePath))
                 return;
 
             var member = invocation?.Expression as MemberAccessExpressionSyntax;
+
             var receiver = member?.Expression as IdentifierNameSyntax;
+
             var currentArgument = invocation?.Parent as ArgumentSyntax
                 ?? invocation?.Ancestors().OfType<ArgumentSyntax>().FirstOrDefault();
+
             var argumentList = currentArgument?.Parent as ArgumentListSyntax
                 ?? currentArgument?.Ancestors().OfType<ArgumentListSyntax>().FirstOrDefault();
+
             var creation = argumentList?.Parent as ObjectCreationExpressionSyntax
                 ?? argumentList?.Ancestors().OfType<ObjectCreationExpressionSyntax>().FirstOrDefault();
+
             if (member == null || member.Name.Identifier.ValueText != "For"
                 || receiver == null || receiver.Identifier.ValueText != "Substitute"
                 || currentArgument == null || argumentList == null || creation == null)
                 return;
 
             var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+
             var method = model.GetSymbolInfo(invocation, context.CancellationToken).Symbol as IMethodSymbol;
+
             if (method != null && (method.ContainingType?.Name != "Substitute"
                 || method.ContainingNamespace?.ToDisplayString() != "NSubstitute"
                 || !method.IsGenericMethod))
                 return;
 
             var constructor = model.GetSymbolInfo(creation, context.CancellationToken).Symbol as IMethodSymbol;
+
             if (constructor == null || !constructor.MethodKind.Equals(MethodKind.Constructor))
             {
                 var targetType = model.GetTypeInfo(creation, context.CancellationToken).ConvertedType as INamedTypeSymbol;
@@ -58,6 +68,7 @@ namespace NSubstitute.QuickMock
                 return;
 
             var position = argumentList.Arguments.IndexOf(currentArgument);
+
             if (position < 0 || position >= constructor.Parameters.Length)
                 return;
 
@@ -65,12 +76,13 @@ namespace NSubstitute.QuickMock
                 ? constructor.Parameters[position]
                 : constructor.Parameters.FirstOrDefault(p =>
                     string.Equals(p.Name, currentArgument.NameColon.Name.Identifier.ValueText, StringComparison.Ordinal));
+
             if (parameter == null)
                 return;
 
-            context.RegisterRefactoring(CodeAction.Create(Title, cancellationToken =>
-                ApplyAsync(context.Document, invocation, argumentList, parameter, cancellationToken),
-                equivalenceKey: Title));
+            context.RegisterRefactoring(CodeAction.Create(Title,
+                                                          cancellationToken => ApplyAsync(context.Document, invocation, argumentList, parameter, cancellationToken),
+                                                          equivalenceKey: Title));
         }
 
         private static InvocationExpressionSyntax FindSubstituteForInvocation(SyntaxNode root, Microsoft.CodeAnalysis.Text.TextSpan span)

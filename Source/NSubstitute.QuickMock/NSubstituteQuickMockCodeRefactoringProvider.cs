@@ -3,10 +3,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NSubstitute.QuickMock.NSubstituteQuickMockCodeRefactoringProviderActions;
-using NSubstitute.QuickMock.Helpers;
 using NSubstitute.QuickMock.Extensions;
-using System;
+using NSubstitute.QuickMock.Helpers;
+using NSubstitute.QuickMock.NSubstituteQuickMockCodeRefactoringProviderActions;
 using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,6 +33,7 @@ namespace NSubstitute.QuickMock
                 var substituteInvocation = node.AncestorsAndSelf()
                     .OfType<InvocationExpressionSyntax>()
                     .FirstOrDefault(IsSubstituteForInvocation);
+
                 if (substituteInvocation?.Ancestors().OfType<ArgumentSyntax>()
                     .Any(argument => argument.Parent is ArgumentListSyntax list
                         && list.Parent is ObjectCreationExpressionSyntax) == true)
@@ -53,6 +53,8 @@ namespace NSubstitute.QuickMock
 
                         if (objectCreationExpressionSyntax is null) return;
 
+                        if (argumentList.Arguments.Count > 0) return;
+
                         var typeInfo = semanticModel.GetTypeInfo(objectCreationExpressionSyntax);
                         var classDefinition = typeInfo.ConvertedType as INamedTypeSymbol;
 
@@ -63,15 +65,15 @@ namespace NSubstitute.QuickMock
                             var ctorMethodSymbols = classDefinition.Constructors.Where(x => x.Parameters.IsUsable());
                             if (ctorMethodSymbols.Any())
                             {
-                                var title = QuickMockCtorTitle;
-                                var quickMockCtorAction = CodeAction.Create(title,
-                                                                            c => NSubstituteActions.QuickMockCtor(context.Document, ctorMethodSymbols, argumentList, c),
-                                                                            equivalenceKey: title);
-
-                                title = MockCtorTitle;
+                                var title = MockCtorTitle;
                                 var mockCtorAction = CodeAction.Create(title,
                                                                        c => NSubstituteActions.MockCtor(context.Document, ctorMethodSymbols, argumentList, c),
                                                                        equivalenceKey: title);
+
+                                title = QuickMockCtorTitle;
+                                var quickMockCtorAction = CodeAction.Create(title,
+                                                                            c => NSubstituteActions.QuickMockCtor(context.Document, ctorMethodSymbols, argumentList, c),
+                                                                            equivalenceKey: title);
 
                                 // Register these code actions.
                                 context.RegisterRefactoring(quickMockCtorAction);
